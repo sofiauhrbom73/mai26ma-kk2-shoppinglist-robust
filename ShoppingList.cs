@@ -1,12 +1,18 @@
+using System.Text.Json;
+
 // Holds the items and takes care of loading and saving them.
 class ShoppingList
 {
     private List<Item> items = new List<Item>();
-    private string path;
+    private readonly string starterPath;
+    private readonly string localPath;
 
     public ShoppingList(string path)
     {
-        this.path = path;
+        starterPath = path;
+        string directory = Path.GetDirectoryName(path) ?? "";
+        string localFileName = $"{Path.GetFileNameWithoutExtension(path)}.local{Path.GetExtension(path)}";
+        localPath = Path.Combine(directory, localFileName);
     }
 
     public void Add(Item item)
@@ -57,44 +63,90 @@ class ShoppingList
         Console.WriteLine($"Totalt: {Total()} kr");
     }
 
-    // Writes one item per line, as "price;name".
+    // Writes the user's changes to a local JSON Lines file.
     public void Save()
     {
-        List<string> lines = new List<string>();
-
-        foreach (Item item in items)
-        {
-            lines.Add($"{item.Price};{item.Name}");
-        }
-
         try
         {
-            File.WriteAllText(path, string.Join("\r\n", lines) + "\r\n");
-        }
-        catch
-        {
-        }
+            using (StreamWriter writer = new StreamWriter(localPath))
+            {
+                foreach (Item item in items)
+                {
+                    writer.WriteLine(JsonSerializer.Serialize(item));
+                }
+            }
 
-        Console.WriteLine("Listan är sparad.");
+            Console.WriteLine("Listan är sparad.");
+        }
+        catch (IOException ex)
+        {
+            Console.WriteLine($"Kunde inte spara listan: {ex.Message}");
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            Console.WriteLine($"Kunde inte spara listan: {ex.Message}");
+        }
     }
 
     // Reads the file back into the list.
     public void Load()
     {
-        foreach (string line in File.ReadAllLines(path))
+        string sourcePath = File.Exists(localPath) ? localPath : starterPath;
+        if (!File.Exists(sourcePath))
         {
-            if (string.IsNullOrWhiteSpace(line))
-            {
-                continue;
-            }
-
-            string[] parts = line.Split(';');
-            if (parts.Length != 2 || !int.TryParse(parts[0], out int price))
-            {
-                continue;
-            }
-
-            items.Add(new Item(parts[1], price));
+            return;
         }
+
+        try
+        {
+            foreach (string line in File.ReadAllLines(sourcePath))
+            {
+                if (TryParseItem(line, out Item item))
+                {
+                    items.Add(item);
+                }
+            }
+        }
+        catch (IOException ex)
+        {
+            Console.WriteLine($"Kunde inte läsa inköpslistan: {ex.Message}");
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            Console.WriteLine($"Kunde inte läsa inköpslistan: {ex.Message}");
+        }
+    }
+
+    private static bool TryParseItem(string line, out Item item)
+    {
+        item = null;
+        if (string.IsNullOrWhiteSpace(line))
+        {
+            return false;
+        }
+
+        if (line.TrimStart().StartsWith("{", StringComparison.Ordinal))
+        {
+            try
+            {
+                item = JsonSerializer.Deserialize<Item>(line);
+                return item != null && !string.IsNullOrWhiteSpace(item.Name);
+            }
+            catch (JsonException)
+            {
+                return false;
+            }
+        }
+
+        int separator = line.IndexOf(';');
+        if (separator < 1
+            || !int.TryParse(line[..separator], out int price)
+            || string.IsNullOrWhiteSpace(line[(separator + 1)..]))
+        {
+            return false;
+        }
+
+        item = new Item(line[(separator + 1)..], price);
+        return true;
     }
 }
