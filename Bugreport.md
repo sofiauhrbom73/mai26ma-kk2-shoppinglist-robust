@@ -151,7 +151,7 @@ public void RemoveAt(int number)
 
 * What happened?
 
-The program crashed when the I entered invalid input in the menu, for example: abc or pressed Enter.
+The program crashed when I entered invalid input in the menu, for example: abc or pressed Enter.
 
 1. Lägg till vara
 2. Ta bort vara
@@ -182,14 +182,16 @@ if (!int.TryParse(Console.ReadLine(), out int choice))
 
 * What happened?
 
-The program crashed when the I entered invalid input in the menu, for example: abc or pressed Enter.
+The program crashed when the I entered invalid input for price, for example: abc or pressed Enter.
 
 1. Lägg till vara
 2. Ta bort vara
 3. Spara
 4. Sök vara
 5. Avsluta
-Välj: abc
+Välj: 1
+Skriv in vara
+Välj pris: abc
 Unhandled exception. System.FormatException: The input string 'abc' was not in a correct format.
    at System.Number.ThrowFormatException[TChar](ReadOnlySpan`1 value)
    at System.Int32.Parse(String s)

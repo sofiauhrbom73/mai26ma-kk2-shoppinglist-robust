@@ -11,27 +11,41 @@ while (true)
     Console.WriteLine("3. Spara");
     Console.WriteLine("4. Sök vara");
     Console.WriteLine("5. Avsluta");
-    Console.Write("Välj: ");
 
-    if (!int.TryParse(Console.ReadLine(), out int choice))
+    int? choiceInput = ReadInteger("Välj: ", 1, 5);
+    if (choiceInput == null)
     {
-        Console.WriteLine("Please enter a valid number.");
-        continue;
+        break;
     }
+
+    int choice = choiceInput.Value;
 
     if (choice == 1)
     {
-        Console.Write("Namn: ");
-        string name = Console.ReadLine();
-        Console.Write("Pris: ");
-        int price = int.Parse(Console.ReadLine());
+        string name = ReadName("Namn: ");
+        if (name == null)
+        {
+            break;
+        }
+
+        int? priceInput = ReadInteger("Pris: ", 0, int.MaxValue);
+        if (priceInput == null)
+        {
+            break;
+        }
+
+        int price = priceInput.Value;
         list.Add(new Item(name, price));
     }
     else if (choice == 2)
     {
-        Console.Write("Nummer: ");
-        int number = int.Parse(Console.ReadLine());
-        list.RemoveAt(number);
+        int? number = ReadInteger("Nummer: ", 1, int.MaxValue);
+        if (number == null)
+        {
+            break;
+        }
+
+        list.RemoveAt(number.Value);
     }
     else if (choice == 3)
     {
@@ -39,8 +53,12 @@ while (true)
     }
     else if (choice == 4)
     {
-        Console.Write("Namn att söka efter: ");
-        string wanted = Console.ReadLine();
+        string wanted = ReadName("Namn att söka efter: ");
+        if (wanted == null)
+        {
+            break;
+        }
+
         Item found = list.Find(wanted);
 
         if (found == null)
@@ -55,5 +73,45 @@ while (true)
     else if (choice == 5)
     {
         break;
+    }
+}
+
+static int? ReadInteger(string prompt, int minimum, int maximum)
+{
+    while (true)
+    {
+        Console.Write(prompt);
+        string input = Console.ReadLine();
+        if (input == null)
+        {
+            return null;
+        }
+
+        if (int.TryParse(input, out int value) && value >= minimum && value <= maximum)
+        {
+            return value;
+        }
+
+        Console.WriteLine($"Ange ett heltal mellan {minimum} och {maximum}.");
+    }
+}
+
+static string ReadName(string prompt)
+{
+    while (true)
+    {
+        Console.Write(prompt);
+        string name = Console.ReadLine();
+        if (name == null)
+        {
+            return null;
+        }
+
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            return name.Trim();
+        }
+
+        Console.WriteLine("Namnet får inte vara tomt.");
     }
 }
