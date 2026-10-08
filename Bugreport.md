@@ -210,3 +210,17 @@ if (!int.TryParse(Console.ReadLine(), out int choice))
     Console.WriteLine("Please enter a valid number.");
     continue;
 }
+
+## Bug 8
+
+* What happened?
+
+The total could become incorrect when the prices of several items added together exceeded the maximum value of an `int`. The sum could overflow and display an incorrect value.
+
+* Why did it happen?
+
+`Total()` stored the running sum in an `int`, which has a smaller range than the combined prices of multiple items.
+
+* How did you fix it?
+
+I changed `Total()` to use a `long` for both its return type and running sum. This gives the total a much larger range and prevents overflow for realistic shopping lists.
