@@ -26,10 +26,12 @@ It uses an exception rather than returning `false` because exceeding the budget
 is an exceptional failure of the requested operation, and the caller needs the
 reason to explain it to the user.
 
-`Program.cs` catches the budget exception and the `ArgumentException` thrown by
-the `Item` constructor, displays a clear message, and continues running.
-`ShoppingList.Load` also uses `Add`, so data loaded from a file cannot make the
-list exceed the limit.
+`Program.cs` starts `ShoppingListMenu`, which handles prompts, menu flow, and
+user-facing messages. `ShoppingList` owns list operations, budget enforcement,
+and file persistence; it reports invalid records as warnings and lets file
+errors reach the menu. The menu catches expected exceptions, explains failures
+to the user, and keeps the application running. Loading also uses `Add`, so
+saved data cannot make the list exceed its budget.
 
 In `ShoppingList.Save`, a `using` block disposes the `StreamWriter` so the file is closed whether saving succeeds or fails. The success message is only shown if writing and closing the file both succeed.
 

@@ -13,6 +13,8 @@ class ShoppingList
     private readonly string starterPath;
     private readonly string localPath;
 
+    public IReadOnlyList<Item> Items => items.AsReadOnly();
+
     public ShoppingList(string path, long budgetLimit = DefaultBudgetLimit)
     {
         if (budgetLimit < 0)
@@ -45,8 +47,7 @@ class ShoppingList
     {
         if (number < 1 || number > items.Count)
         {
-            Console.WriteLine("Please enter a valid item number.");
-            return;
+            throw new ArgumentOutOfRangeException(nameof(number), number, "Please enter a valid item number.");
         }
 
         items.RemoveAt(number - 1);
@@ -79,97 +80,68 @@ class ShoppingList
         return null;
     }
 
-    public void Print()
-    {
-        for (int i = 0; i < items.Count; i++)
-        {
-            Console.WriteLine($"{i + 1}. {items[i]}");
-        }
-
-        Console.WriteLine($"Totalt: {Total()} kr");
-    }
-
     // Writes the user's changes to a local JSON Lines file.
     public void Save()
     {
-        try
+        using (StreamWriter writer = new StreamWriter(localPath))
         {
-            using (StreamWriter writer = new StreamWriter(localPath))
+            writer.WriteLine($"{BudgetHeaderPrefix}{BudgetLimit}");
+
+            foreach (Item item in items)
             {
-                writer.WriteLine($"{BudgetHeaderPrefix}{BudgetLimit}");
-
-                foreach (Item item in items)
-                {
-                    writer.WriteLine(JsonSerializer.Serialize(item));
-                }
+                writer.WriteLine(JsonSerializer.Serialize(item));
             }
-
-            Console.WriteLine("Listan är sparad.");
-        }
-        catch (IOException ex)
-        {
-            Console.WriteLine($"Kunde inte spara listan: {ex.Message}");
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            Console.WriteLine($"Kunde inte spara listan: {ex.Message}");
         }
     }
 
     // Reads the file back into the list.
-    public void Load()
+    public IReadOnlyList<string> Load()
     {
+        List<string> warnings = new List<string>();
         string sourcePath = File.Exists(localPath) ? localPath : starterPath;
         if (!File.Exists(sourcePath))
         {
-            return;
+            return warnings;
         }
 
-        try
+        string[] lines = File.ReadAllLines(sourcePath);
+        int firstItemLine = 0;
+
+        if (lines.Length > 0 && lines[0].StartsWith(BudgetHeaderPrefix, StringComparison.Ordinal))
         {
-            string[] lines = File.ReadAllLines(sourcePath);
-            int firstItemLine = 0;
-
-            if (lines.Length > 0 && lines[0].StartsWith(BudgetHeaderPrefix, StringComparison.Ordinal))
+            string savedBudget = lines[0][BudgetHeaderPrefix.Length..];
+            if (!long.TryParse(savedBudget, out long budgetLimit) || budgetLimit < 0)
             {
-                string savedBudget = lines[0][BudgetHeaderPrefix.Length..];
-                if (!long.TryParse(savedBudget, out long budgetLimit) || budgetLimit < 0)
-                {
-                    Console.WriteLine("Kunde inte läsa inköpslistan: budgetgränsen i filen är ogiltig.");
-                    return;
-                }
-
-                BudgetLimit = budgetLimit;
-                firstItemLine = 1;
+                throw new InvalidDataException("Budgetgränsen i filen är ogiltig.");
             }
 
-            for (int i = firstItemLine; i < lines.Length; i++)
+            BudgetLimit = budgetLimit;
+            firstItemLine = 1;
+        }
+
+        for (int i = firstItemLine; i < lines.Length; i++)
+        {
+            try
             {
-                try
+                if (!TryParseItem(lines[i], out Item item))
                 {
-                    if (TryParseItem(lines[i], out Item item))
-                    {
-                        Add(item);
-                    }
+                    warnings.Add($"Raden {i + 1} är ogiltig och har hoppats över.");
+                    continue;
                 }
-                catch (ArgumentException ex)
-                {
-                    Console.WriteLine($"Ogiltig vara i filen, raden hoppas över: {ex.Message}");
-                }
-                catch (BudgetExceededException ex)
-                {
-                    Console.WriteLine($"Varan i filen hoppas över: {ex.Message}");
-                }
+
+                Add(item);
+            }
+            catch (ArgumentException ex)
+            {
+                warnings.Add($"Ogiltig vara på raden {i + 1}, raden har hoppats över: {ex.Message}");
+            }
+            catch (BudgetExceededException ex)
+            {
+                warnings.Add($"Varan på raden {i + 1} har hoppats över: {ex.Message}");
             }
         }
-        catch (IOException ex)
-        {
-            Console.WriteLine($"Kunde inte läsa inköpslistan: {ex.Message}");
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            Console.WriteLine($"Kunde inte läsa inköpslistan: {ex.Message}");
-        }
+
+        return warnings;
     }
 
     private static bool TryParseItem(string line, out Item item)

@@ -1,8 +1,8 @@
 // One item on the shopping list.
 class Item
 {
-    public string Name { get; set; }
-    public int Price { get; set; }
+    public string Name { get; }
+    public int Price { get; }
 
     public Item(string name, int price)
     {
