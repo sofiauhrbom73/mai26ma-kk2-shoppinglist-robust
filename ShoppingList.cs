@@ -33,9 +33,9 @@ class ShoppingList
     }
 
     // Adds up the price of every item on the list.
-    public int Total()
+    public long Total()
     {
-        int sum = 0;
+        long sum = 0;
 
         for (int i = 0; i < items.Count; i++)
         {
