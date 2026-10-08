@@ -33,7 +33,7 @@ list exceed the limit.
 
 In `ShoppingList.Save`, a `using` block disposes the `StreamWriter` so the file is closed whether saving succeeds or fails. The success message is only shown if writing and closing the file both succeed.
 
-The original `items.txt` is kept as the starter list. Saved changes go to `items.local.txt`, which is ignored by Git. New saves use JSON lines so names containing special characters are preserved; older `price;name` files can still be loaded. This keeps the starter file unchanged while allowing saved changes to persist between runs on this computer.
+The original `items.txt` is kept as the starter list. Saved changes go to `items.local.txt`, which is ignored by Git. The saved file starts with the budget limit and then stores items as JSON lines, so the limit is restored when the list is loaded. Older JSON-lines and `price;name` files without a budget header can still be loaded and use the default budget. This keeps the starter file unchanged while allowing saved changes to persist between runs on this computer.
 
 ## 3. Class Diagram
 

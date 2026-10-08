@@ -3,14 +3,24 @@ using System.Text.Json;
 // Holds the items and takes care of loading and saving them.
 class ShoppingList
 {
-    public const long BudgetLimit = 500;
+    private const string BudgetHeaderPrefix = "# ShoppingListBudget=";
+
+    public const long DefaultBudgetLimit = 500;
+
+    public long BudgetLimit { get; private set; }
 
     private List<Item> items = new List<Item>();
     private readonly string starterPath;
     private readonly string localPath;
 
-    public ShoppingList(string path)
+    public ShoppingList(string path, long budgetLimit = DefaultBudgetLimit)
     {
+        if (budgetLimit < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(budgetLimit), budgetLimit, "Budget cannot be negative.");
+        }
+
+        BudgetLimit = budgetLimit;
         starterPath = path;
         string directory = Path.GetDirectoryName(path) ?? "";
         string localFileName = $"{Path.GetFileNameWithoutExtension(path)}.local{Path.GetExtension(path)}";
@@ -86,6 +96,8 @@ class ShoppingList
         {
             using (StreamWriter writer = new StreamWriter(localPath))
             {
+                writer.WriteLine($"{BudgetHeaderPrefix}{BudgetLimit}");
+
                 foreach (Item item in items)
                 {
                     writer.WriteLine(JsonSerializer.Serialize(item));
@@ -115,11 +127,27 @@ class ShoppingList
 
         try
         {
-            foreach (string line in File.ReadAllLines(sourcePath))
+            string[] lines = File.ReadAllLines(sourcePath);
+            int firstItemLine = 0;
+
+            if (lines.Length > 0 && lines[0].StartsWith(BudgetHeaderPrefix, StringComparison.Ordinal))
+            {
+                string savedBudget = lines[0][BudgetHeaderPrefix.Length..];
+                if (!long.TryParse(savedBudget, out long budgetLimit) || budgetLimit < 0)
+                {
+                    Console.WriteLine("Kunde inte läsa inköpslistan: budgetgränsen i filen är ogiltig.");
+                    return;
+                }
+
+                BudgetLimit = budgetLimit;
+                firstItemLine = 1;
+            }
+
+            for (int i = firstItemLine; i < lines.Length; i++)
             {
                 try
                 {
-                    if (TryParseItem(line, out Item item))
+                    if (TryParseItem(lines[i], out Item item))
                     {
                         Add(item);
                     }
