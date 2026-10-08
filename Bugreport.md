@@ -110,14 +110,4 @@ which incorrectly indicates that the save operation was successful.
 
 * How did you fix it?
 
-try
-{
-    File.WriteAllText(path, string.Join("\r\n", lines));
-    Console.WriteLine("The list has been saved.");
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Failed to save the list: {ex.Message}");
-}
-
-This solution ensures that save errors are visible to the user and prevents the program from falsely reporting a successful save operation.
+I replaced the empty catch block with handlers for IOException and UnauthorizedAccessException. If saving fails, the program now displays an error message instead of hiding the problem. The success message is shown only after the file has been written successfully.
