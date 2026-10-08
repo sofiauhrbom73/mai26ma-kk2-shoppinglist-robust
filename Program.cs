@@ -35,7 +35,19 @@ while (true)
         }
 
         int price = priceInput.Value;
-        list.Add(new Item(name, price));
+        try
+        {
+            list.Add(new Item(name, price));
+            Console.WriteLine("Varan har lagts till.");
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Ogiltig vara: {ex.Message}");
+        }
+        catch (BudgetExceededException ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
     }
     else if (choice == 2)
     {

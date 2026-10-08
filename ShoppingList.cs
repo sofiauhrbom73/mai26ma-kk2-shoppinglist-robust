@@ -3,6 +3,8 @@ using System.Text.Json;
 // Holds the items and takes care of loading and saving them.
 class ShoppingList
 {
+    public const long BudgetLimit = 500;
+
     private List<Item> items = new List<Item>();
     private readonly string starterPath;
     private readonly string localPath;
@@ -17,6 +19,14 @@ class ShoppingList
 
     public void Add(Item item)
     {
+        ArgumentNullException.ThrowIfNull(item);
+
+        if (item.Price > BudgetLimit - Total())
+        {
+            throw new BudgetExceededException(
+                $"Adding '{item.Name}' would exceed the {BudgetLimit} kr budget.");
+        }
+
         items.Add(item);
     }
 
@@ -107,9 +117,20 @@ class ShoppingList
         {
             foreach (string line in File.ReadAllLines(sourcePath))
             {
-                if (TryParseItem(line, out Item item))
+                try
                 {
-                    items.Add(item);
+                    if (TryParseItem(line, out Item item))
+                    {
+                        Add(item);
+                    }
+                }
+                catch (ArgumentException ex)
+                {
+                    Console.WriteLine($"Ogiltig vara i filen, raden hoppas över: {ex.Message}");
+                }
+                catch (BudgetExceededException ex)
+                {
+                    Console.WriteLine($"Varan i filen hoppas över: {ex.Message}");
                 }
             }
         }

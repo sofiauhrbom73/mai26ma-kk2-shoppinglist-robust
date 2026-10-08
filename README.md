@@ -16,9 +16,20 @@ Link to Bugreport.md
 
 ## 2. Design Decision
 
-`ShoppingList` has a budget limit of 500 kr. Before adding an item, `Add` checks whether the current total plus the item's price would exceed this limit. If it would, `Add` throws a `BudgetExceededException` and does not add the item.
+`Item` rejects blank names with `ArgumentException` and negative prices with
+`ArgumentOutOfRangeException`.
 
-I chose an exception because exceeding the budget means the requested operation cannot be completed. The custom exception makes this situation clear to the caller. `ShoppingList.Run` catches it, displays the message to the user, and continues running. The same `try` block also handles invalid item values rejected by the `Item` constructor.
+`ShoppingList` has a budget limit of 500 kr. Before adding an item, `Add` checks
+whether the current total plus the item's price would exceed this limit. If it
+would, `Add` throws a `BudgetExceededException` and does not add the item.
+It uses an exception rather than returning `false` because exceeding the budget
+is an exceptional failure of the requested operation, and the caller needs the
+reason to explain it to the user.
+
+`Program.cs` catches the budget exception and the `ArgumentException` thrown by
+the `Item` constructor, displays a clear message, and continues running.
+`ShoppingList.Load` also uses `Add`, so data loaded from a file cannot make the
+list exceed the limit.
 
 In `ShoppingList.Save`, a `using` block disposes the `StreamWriter` so the file is closed whether saving succeeds or fails. The success message is only shown if writing and closing the file both succeed.
 
