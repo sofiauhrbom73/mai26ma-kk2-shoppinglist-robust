@@ -45,3 +45,51 @@ The original `items.txt` is kept as the starter list. Saved changes go to `items
 
 [View the Mermaid class diagram](Uml.md).
 
+## 4. Running the program
+
+### Prerequisite
+
+Install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0). To
+check that it is installed, run:
+
+```bash
+dotnet --version
+```
+
+### Start the program
+
+Clone the repository, change into its folder, and start the app:
+
+```bash
+git clone https://github.com/sofiauhrbom73/mai26ma-kk2-shoppinglist-robust.git
+cd mai26ma-kk2-shoppinglist-robust
+dotnet run --project Shopping.csproj
+```
+
+You can also open the repository folder in Visual Studio Code, open its
+integrated terminal, and run the `dotnet run --project Shopping.csproj`
+command there.
+
+## 5. How to use the program
+
+When the program starts, it loads the saved list if one exists; otherwise, it
+loads the starter items. The menu displays the items, their numbers, the
+current total, and the budget limit.
+
+At the `Välj:` prompt, enter one of the menu numbers:
+
+1. **Lägg till vara** - enter a non-empty name and a non-negative whole-number
+   price. The item is added only if the total stays within the displayed
+   budget. Blank names and invalid prices prompt you to try again. If the item
+   would exceed the budget, the program explains why and returns to the menu.
+2. **Ta bort vara** - enter the number shown next to the item you want to
+   remove. The list is numbered again after each change.
+3. **Spara** - save the current list and budget to `items.local.txt` in the
+   project folder. Save after making changes that you want to keep.
+4. **Sök vara** - enter the item's name to look it up.
+5. **Avsluta** - exit the program. Changes made since the last save are not
+   saved automatically.
+
+Enter a whole number when asked for a menu choice, item number, or price. The
+program explains invalid input and lets you try again. You can also press
+Ctrl+C to stop the program.
