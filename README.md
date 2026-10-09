@@ -6,9 +6,13 @@
 
 ### README Requirements
 
-Your README must contain three things:
+Your README must contain three things (Bug report, design decision, class diagram)
 
 ## 1. Bug Report
+
+Code review before running the program
+
+[Code review](Codereview.md)
 
 Link to Bugreport.md
 
