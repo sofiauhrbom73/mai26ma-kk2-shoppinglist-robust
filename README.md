@@ -70,6 +70,65 @@ You can also open the repository folder in Visual Studio Code, open its
 integrated terminal, and run the `dotnet run --project Shopping.csproj`
 command there.
 
+### Build and run a standalone executable
+
+The standalone builds include the .NET runtime. You do not need to install the
+.NET SDK on the computer that runs the executable. Run the publish command
+from the repository folder on a computer with the .NET 10 SDK. Each command
+also copies the starter list beside the executable.
+
+#### Windows x64
+
+Publish:
+
+```powershell
+dotnet publish Shopping.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:DebugType=None -p:DebugSymbols=false -o "Release/Windows"
+Copy-Item items.txt Release/Windows/items.txt -Force
+```
+
+Run `Release\Windows\Shopping.exe`, or use PowerShell:
+
+```powershell
+.\Release\Windows\Shopping.exe
+```
+
+#### Mac Apple silicon (M1 and later)
+
+Publish:
+
+```bash
+dotnet publish Shopping.csproj -c Release -r osx-arm64 --self-contained true -p:PublishSingleFile=true -p:DebugType=None -p:DebugSymbols=false -o "Release/Mac"
+cp items.txt Release/Mac/items.txt
+```
+
+On the Mac, open Terminal, go to the published folder, and run:
+
+```bash
+cd Release/Mac
+chmod +x Shopping
+./Shopping
+```
+
+#### Mac Intel
+
+Publish:
+
+```bash
+dotnet publish Shopping.csproj -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true -p:DebugType=None -p:DebugSymbols=false -o "Release/Mac Intel"
+cp items.txt "Release/Mac Intel/items.txt"
+```
+
+On the Intel Mac, open Terminal, go to the published folder, and run:
+
+```bash
+cd "Release/Mac Intel"
+chmod +x Shopping
+./Shopping
+```
+
+For either Mac version, macOS may warn that the app is from an unidentified
+developer because it is not signed or notarized.
+
 ## 5. How to use the program
 
 When the program starts, it loads the saved list if one exists; otherwise, it
