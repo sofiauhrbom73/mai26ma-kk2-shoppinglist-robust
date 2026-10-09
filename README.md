@@ -44,3 +44,4 @@ The original `items.txt` is kept as the starter list. Saved changes go to `items
 ## 3. Class Diagram
 
 [View the Mermaid class diagram](Uml.md).
+
